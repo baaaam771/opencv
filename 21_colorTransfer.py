@@ -24,6 +24,62 @@ outputLab = outputLab.astype('float32')
 
 print(srcLab)
 
+# 채널 분리
+srcL, srcA, srcB = cv2.split(srcLab)
+dstL, dstA, dstB = cv2.split(dstLab)
+outL, outA, outB = cv2.split(outputLab)
+
+#  dst의 값에서,dst의 평균을 뺀다.
+print(type(dstL))
+print()
+print(dstL)
+
+outL = dstL - dstL.mean()
+outA = dstA - dstA.mean()
+outB = dstB - dstB.mean()
+
+outL = outL * ( srcL.std() / dstL.std() )
+outA = outA * ( srcA.std() / dstA.std() )
+outB = outB * ( srcB.std() / dstB.std() )
+
+outL = outL + srcL.mean()
+outA = outA + srcA.mean()
+outB = outB + srcB.mean()
+
+# 우리가 눈으로 보는 이미지는, 음수도 없고 255보다 큰값도 있으면 안된다.
+# 따라서 우리의 이미지는 0 ~ 255까지의 값으로 되어 있어야 하므로.
+# np.clip 힘수를 이용해서, 0보다 작은 것은 0으로 만들고, 255보다 큰것은 255로 만들어 준다.
+
+outL = np.clip(outL, 0, 255)
+outA = np.clip(outA, 0, 255)
+outB = np.clip(outB, 0, 255)
+
+
+
+a= np.array([-1, 5, 258, 1004, -982, 75])
+result = np.clip(a, 0, 255)
+print('---------')
+print(a)
+print(result)
+print('----------')
+
+# 다시 분리 되어 있는 채널을 하나로 합쳐준다. 즉 , 하나의 행렬로 만들어준다.
+outputLab = cv2.merge( [outL, outA, outB] )
+
+print(outputLab.dtype)
+
+# float32로 되어 있으므로, 이미지는 unint8이기 떄문에, uint8로 변환해줘야한다
+outputLab = np.uint8(outputLab)
+
+print(outputLab.dtype)
+
+# 화면에 표시하려고 하는데, 화면에 표시하는 함수는, cv2.imshow()이다.
+# 이 함수는 BGR컬러 스페이스를 화면에 표시하는 함수이므로,
+# 우리는 현재 LAB로 되어있는 컬러 스페이스를, BGR로 먼저 바꿔줘야한다.
+
+outputLab = cv2.cvtColor(outputLab, cv2.COLOR_LAB2BGR)
+
+cv2.imshow("output", outputLab)
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()
